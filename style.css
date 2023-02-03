@@ -1,0 +1,106 @@
+#weapons-dropdown {
+    margin-left: 200px;
+    width: 200px;
+    padding: 10px;
+    font-size: 16px;
+    font-family: Arial, sans-serif;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    appearance: none;
+    background-color: white;
+}
+
+#upgrade-selection {
+    margin-left: 10px;
+    width: 200px;
+    padding: 10px;
+    font-size: 16px;
+    font-family: Arial, sans-serif;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    appearance: none;
+    background-color: white;
+}
+
+#starting-class {
+    margin-left: 10px;
+    width: 200px;
+    padding: 10px;
+    font-size: 16px;
+    font-family: Arial, sans-serif;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    appearance: none;
+    background-color: white;
+}
+
+#calculate-button {
+    margin-left: 10px;
+    width: 200px;
+    padding: 10px;
+    font-size: 16px;
+    font-family: Arial, sans-serif;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    appearance: none;
+    background-color: white;
+}
+
+.statSelection {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+}
+
+.statSelection label {
+    font-size: 18px;
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+.statSelection select {
+    font-size: 16px;
+    padding: 5px;
+    border: 1px solid lightgray;
+    border-radius: 5px;
+    width: 60px;
+    text-align: center;
+}
+
+.statSelection div {
+    margin: 10px;
+}
+
+.table-body {
+    font-family: Arial, sans-serif;
+    border-collapse: collapse;
+}
+
+.table-body td, .table-body th {
+    border: 1px solid #ddd;
+    padding: 3px;
+}
+
+
+.table-body tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+.table-body tr:hover {
+    background-color: #ddd;
+}
+
+.table-body th {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    text-align: left;
+    background-color: #4CAF50;
+    color: white;
+}
+
+.titleRow {
+    font-weight: bold;
+    font-style:oblique;
+}
