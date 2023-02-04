@@ -430,10 +430,11 @@ function calculateButton() {
         requirementsDiv.innerHTML = "Requirements: "
         var reqNotMet = []
 
+        var statDict = {"Str": 0, "Dex": 1, "Int": 2, "Fai": 3, "Arc": 4}
         for (i in reqNames) {
             var reqValue = reqDict[reqNames[i]]
             requirementsDiv.innerHTML += reqNames[i] + ": " + reqValue + " "
-            if (reqValue > playerStats[i]) {
+            if (reqValue > playerStats[statDict[reqNames[i]]]) {
                 requirementsDiv.innerHTML += "(not met) "
                 reqNotMet.push(reqNames[i])
             } else requirementsDiv.innerHTML += "(met) "
