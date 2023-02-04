@@ -4,6 +4,7 @@ import * as scalingJson from './scaling.json' assert { type: 'json' };
 import * as correctGraphId from './correctGraphId.json' assert { type: 'json' };
 import * as correctGraph from './correctGraph.json' assert { type: 'json' };
 import * as attackParam from './attackElementCorrectParam.json' assert { type: 'json' };
+import * as passive from './passive.json' assert { type: 'json'}
 
 function getWeaponAttack(name) {
     return attackJson.default.filter(
@@ -32,6 +33,12 @@ function getCorrectGraph(id) {
 function getAttackParam(id) {
     return attackParam.default.filter(
         function(attackParam){ return attackParam["Row ID"] == id }
+    )[0];
+}
+
+function getPassive(name) {
+    return passive.default.filter(
+        function(passive){ return passive.Name == name }
     )[0];
 }
 
@@ -80,16 +87,17 @@ function getStatFromPlayer(playerStats, weaponName, weaponLevel) {
             var GrowMax = cGraph["Grow 4"]
 
             for (var k = 0; k < 5; k ++) {
-                if (cGraph["Stat " + k] <= playerStats[j]) {
+                if (cGraph["Stat " + k] < playerStats[j]) {
                     StatMin = cGraph["Stat " + k]
                     ExponentMin = cGraph["Exponent " + k]
                     GrowMin = cGraph["Grow " + k]
                 } 
-                if (cGraph["Stat " + (5 - k)] > playerStats[j]){
+                if (cGraph["Stat " + (5 - k)] >= playerStats[j]){
                     GrowMax = cGraph["Grow " + (5 - k)]
                     StatMax = cGraph["Stat " + (5 - k)]
                 } 
             }
+
             var calcCorrect = CalcCorrectFormula(playerStats[j], StatMin, StatMax, ExponentMin, GrowMin, GrowMax)
             calcCorrectDict[listDamage[i]][listScale[j]] = calcCorrect / 100
         }
@@ -129,6 +137,52 @@ function getStatFromPlayer(playerStats, weaponName, weaponLevel) {
 
 }
 
+function getHp(vigor) {
+    if (vigor > 60) {
+        return Math.trunc(1900 + 200 * (1 - Math.pow((1 - (vigor - 60) / 39), 1.2)));
+    } else if (vigor > 40) {
+        return Math.trunc(1450 + 450 * (1 - Math.pow((1 - (vigor - 40) / 20), 1.2)));
+    } else if (vigor > 25) {
+        return Math.trunc(800 + 650 * Math.pow((vigor - 25) / 15, 1.1));
+    } else {
+        return Math.trunc(300 + 500 * Math.pow((vigor - 1) / 24, 1.5));
+    }
+}
+
+function getFp(mind) {
+    if (mind > 60) {
+        return Math.trunc(350 + 100 * (mind - 60) / 39);
+    } else if (mind > 35) {
+        return Math.trunc(200 + 150 * (1 - Math.pow((1 - (mind - 35) / 25), 1.2)));
+    } else if (mind > 15) {
+        return Math.trunc(95 + 105 * (mind - 15) / 20);
+    } else {
+        return Math.trunc(50 + 45 * (mind - 1) / 14);
+    }
+}
+
+function getStamina(endurance) {
+    if (endurance > 50) {
+        return Math.trunc(155 + 15 * (endurance - 50) / 49);
+    } else if (endurance > 30) {
+        return Math.trunc(130 + 25 * (endurance - 30) / 20);
+    } else if (endurance > 15) {
+        return Math.trunc(105 + 25 * (endurance - 15) / 15);
+    } else {
+        return Math.trunc(80 + 25 * (endurance - 1) / 14);
+    }
+}
+
+function getEquipLoad(endurance) {
+    if (endurance > 60) {
+        return 120 + (40 * (endurance - 60) / 39);
+    } else if (endurance > 25) {
+        return 72 + (48 * Math.pow((endurance - 25) / 35, 1.1));
+    } else {
+        return 45 + (27 * (endurance - 8) / 17);
+    }
+}
+
 function showWeapons() {
 
     const select = document.getElementById('weapons-dropdown-brow');
@@ -162,7 +216,7 @@ function statSelection() {
         const select = document.createElement('select');
         select.id = stat.id;
     
-        for (let i = 1; i <= 100; i++) {
+        for (let i = 1; i <= 99; i++) {
             const option = document.createElement('option');
             option.value = i;
             option.text = i;
@@ -316,16 +370,31 @@ function calculateButton() {
             tableBodyScale.appendChild(tableRow);
         }
 
-        var strPlayer = document.getElementById("strength").value
-        var dexPlayer = document.getElementById("dexterity").value
-        var intPlayer = document.getElementById("intelligence").value
-        var faiPlayer = document.getElementById("faith").value
-        var arcPlayer = document.getElementById("arcane").value
-        var weaponLevel = document.getElementById("upgrade-selection").value
+        var strPlayer = parseInt(document.getElementById("strength").value)
+        var dexPlayer = parseInt(document.getElementById("dexterity").value)
+        var intPlayer = parseInt(document.getElementById("intelligence").value)
+        var faiPlayer = parseInt(document.getElementById("faith").value)
+        var arcPlayer = parseInt(document.getElementById("arcane").value)
+        var vigPlayer = parseInt(document.getElementById("vigor").value)
+        var minPlayer = parseInt(document.getElementById("mind").value)
+        var endPlayer = parseInt(document.getElementById("endurance").value)
+        var weaponLevel = parseInt(document.getElementById("upgrade-selection").value)
+
+        var playerLevel = (strPlayer + dexPlayer + intPlayer + faiPlayer + arcPlayer + vigPlayer + minPlayer + endPlayer) - 79
+        var upgradeCost = Math.floor((Math.pow(playerLevel + 81, 2) * (Math.max(((playerLevel + 81 - 92) * 0.02), 0) + 0.1)) + 1)
+
+        var levelDiv = document.getElementById("level")
+        levelDiv.innerText = "Level: " + playerLevel + ". Upgrade cost: " + upgradeCost
+
+        if (document.getElementById("double-handed").checked) {
+            strPlayer = parseInt(1.5 * strPlayer)
+        }
+
         var playerStats = [strPlayer, dexPlayer, intPlayer, faiPlayer, arcPlayer]
 
         var [baseDamageDict, scaleDamage, finalDamageOutput, total] = getStatFromPlayer(playerStats, selectedWeaponName, weaponLevel)
 
+        var passEffect = getPassive(selectedWeaponName)
 
         const tableBodyCalc = document.getElementById("calculations");
         tableBodyCalc.innerHTML = "Calculations";
@@ -348,6 +417,11 @@ function calculateButton() {
         titleName.innerHTML = "Final Damage"
         titleRow.appendChild(titleName);
 
+        var passive1 = passEffect["Type 1"]
+        var passive2 = passEffect["Type 2"]
+
+        
+
         tableBodyCalc.appendChild(titleRow);
 
         for (i = 0; i < 5; i++) {
@@ -368,6 +442,7 @@ function calculateButton() {
                 attributeValue.innerHTML = (currentScale == 0 ? "-" : currentScale.toFixed(2))
                 tableRow.appendChild(attributeValue);
                 tableBodyCalc.appendChild(tableRow);
+
             }
 
             attributeValue = document.createElement("td");
@@ -375,7 +450,43 @@ function calculateButton() {
             tableRow.appendChild(attributeValue);
             tableBodyCalc.appendChild(tableRow);
 
+            if (i != 4) continue
+
+            // Passive effects title
+            if (passive1 != "") {
+                attributeValue = document.createElement("td")
+                attributeValue.innerHTML = passive1
+                tableRow.appendChild(attributeValue);
+            }
+    
+            if (passive2 != "") {
+                attributeValue = document.createElement("td")
+                attributeValue.innerHTML = passive2
+                tableRow.appendChild(attributeValue);
+            }
+
+            attributeValue = document.createElement("td")
+            attributeValue.innerHTML = "HP"
+            tableRow.appendChild(attributeValue);
+
+            attributeValue = document.createElement("td")
+            attributeValue.innerHTML = "FP"
+            tableRow.appendChild(attributeValue);
+
+            attributeValue = document.createElement("td")
+            attributeValue.innerHTML = "Stamina"
+            tableRow.appendChild(attributeValue);
+
+            attributeValue = document.createElement("td")
+            attributeValue.innerHTML = "Eq. Load"
+            tableRow.appendChild(attributeValue);
+
+            attributeValue = document.createElement("td")
+            attributeValue.innerHTML = "Mid Roll"
+            tableRow.appendChild(attributeValue);
+
         }
+
 
         tableRow = document.createElement("tr");
         tableRow.classList.add("titleRow")
@@ -389,7 +500,44 @@ function calculateButton() {
         attributeValue = document.createElement("td");
         attributeValue.innerHTML = total.toFixed(2)
         tableRow.appendChild(attributeValue);
+
+        // Passive effects value
+        if (passive1 != "") {
+            attributeValue = document.createElement("td")
+            attributeValue.innerHTML = passEffect[passive1 + " +" + weaponLevel]
+            tableRow.appendChild(attributeValue);
+        }
+
+        if (passive2 != "") {
+            attributeValue = document.createElement("td")
+            attributeValue.innerHTML = passEffect[passive2 + " +" + weaponLevel]
+            tableRow.appendChild(attributeValue);
+        }
+
+        attributeValue = document.createElement("td")
+        attributeValue.innerHTML = getHp(vigPlayer)
+        tableRow.appendChild(attributeValue);
+
+        attributeValue = document.createElement("td")
+        attributeValue.innerHTML = getFp(minPlayer)
+        tableRow.appendChild(attributeValue);
+
+        attributeValue = document.createElement("td")
+        attributeValue.innerHTML = getStamina(endPlayer)
+        tableRow.appendChild(attributeValue);
+
+        attributeValue = document.createElement("td")
+        var eqLoad = getEquipLoad(endPlayer)
+        attributeValue.innerHTML = eqLoad.toFixed(2)
+        tableRow.appendChild(attributeValue);
+
+        attributeValue = document.createElement("td")
+        attributeValue.innerHTML = (eqLoad * 0.6999).toFixed(2)
+        tableRow.appendChild(attributeValue);
+
         tableBodyCalc.appendChild(tableRow);
+
+        
     });
 }
 

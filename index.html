@@ -11,17 +11,28 @@
 </head>
 <body>
     <div class="main">
-        <div class="statSelection">
 
+        <div class="generalSelection">
+            <div class="statSelection">
+            
+            </div>
+
+            <div class="weaponSelection">
+                <input list="weapons-dropdown-brow" id="weapons-dropdown" type="text" placeholder="Select Weapon"/>
+                <datalist id="weapons-dropdown-brow">
+                    <option value="" disabled selected>Select a Weapon</option>
+                </datalist>
+                <select id="upgrade-selection">
+                    <option value="" disabled selected>Upgrade Level</option>
+                </select>
+                    <input type="checkbox" class="double-handed" id="double-handed">
+                    Double Handed
+        
+                <button id="calculate-button">Calculate</button>
+            </div>
         </div>
-        <input list="weapons-dropdown-brow" id="weapons-dropdown" type="text"/>
-        <datalist id="weapons-dropdown-brow">
-            <option value="" disabled selected>Select a Weapon</option>
-        </datalist>
-        <select id="upgrade-selection">
-            <option value="" disabled selected>Upgrade Level</option>
-        </select>
-        <button id="calculate-button">Calculate</button>
+
+        <div id="level"></div>
         <table>
             <tbody class="table-body" id="attack">
             </tbody>

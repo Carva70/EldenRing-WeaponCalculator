@@ -1,5 +1,5 @@
 #weapons-dropdown {
-    margin-left: 200px;
+    margin-left: 10px;
     width: 200px;
     padding: 10px;
     font-size: 16px;
@@ -24,7 +24,7 @@
 
 #starting-class {
     margin-left: 10px;
-    width: 200px;
+    width: 221px;
     padding: 10px;
     font-size: 16px;
     font-family: Arial, sans-serif;
@@ -49,7 +49,7 @@
 .statSelection {
     display: flex;
     flex-wrap: wrap;
-    justify-content: center;
+    justify-content: left;
     align-items: center;
     margin-top: 20px;
 }
@@ -103,4 +103,18 @@
 .titleRow {
     font-weight: bold;
     font-style:oblique;
+}
+.double-handed {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    background-color: #fff;
+    border: 1px solid #000;
+}
+
+#level {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    font-family: Arial;
+    font-size: large;
 }
