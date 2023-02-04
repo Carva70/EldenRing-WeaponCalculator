@@ -7,7 +7,7 @@
 
     <link rel="stylesheet" href="style.css">
     <script src="script.js" defer type="module"></script>
-    <title>Document</title>
+    <title>Elden Ring Weapon Calculator</title>
 </head>
 <body>
     <div class="main">
@@ -23,7 +23,7 @@
                     <option value="" disabled selected>Select a Weapon</option>
                 </datalist>
                 <select id="upgrade-selection">
-                    <option value="" disabled selected>Upgrade Level</option>
+                    <option value=0 disabled selected>Upgrade Level</option>
                 </select>
                     <input type="checkbox" class="double-handed" id="double-handed">
                     Double Handed
@@ -33,6 +33,7 @@
         </div>
 
         <div id="level"></div>
+        <div id="requirements"></div>
         <table>
             <tbody class="table-body" id="attack">
             </tbody>

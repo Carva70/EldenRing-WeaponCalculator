@@ -1,51 +1,28 @@
-#weapons-dropdown {
+body {
+    background-color: rgba(0, 0, 0, 0.8);
+    color: #ccc;
+    font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-style: normal;
+    font-weight: 400;
+    font-size: 16px;
+}
+
+#weapons-dropdown, #upgrade-selection, #starting-class, #calculate-button{
     margin-left: 10px;
     width: 200px;
     padding: 10px;
     font-size: 16px;
-    font-family: Arial, sans-serif;
     border: 1px solid #ccc;
     border-radius: 5px;
     appearance: none;
-    background-color: white;
+    background-color: rgba(255, 255, 255, 0.8);
+    color: #333;
 }
-
-#upgrade-selection {
-    margin-left: 10px;
-    width: 200px;
-    padding: 10px;
-    font-size: 16px;
-    font-family: Arial, sans-serif;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    appearance: none;
-    background-color: white;
-}
-
+    
 #starting-class {
-    margin-left: 10px;
     width: 221px;
-    padding: 10px;
-    font-size: 16px;
-    font-family: Arial, sans-serif;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    appearance: none;
-    background-color: white;
 }
-
-#calculate-button {
-    margin-left: 10px;
-    width: 200px;
-    padding: 10px;
-    font-size: 16px;
-    font-family: Arial, sans-serif;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    appearance: none;
-    background-color: white;
-}
-
+    
 .statSelection {
     display: flex;
     flex-wrap: wrap;
@@ -53,13 +30,14 @@
     align-items: center;
     margin-top: 20px;
 }
-
+    
 .statSelection label {
     font-size: 18px;
     font-weight: bold;
     margin-right: 10px;
+    color: #ccc;
 }
-
+    
 .statSelection select {
     font-size: 16px;
     padding: 5px;
@@ -67,54 +45,57 @@
     border-radius: 5px;
     width: 60px;
     text-align: center;
+    color: #333;
+    background-color: rgba(255, 255, 255, 0.8);
 }
-
+    
 .statSelection div {
     margin: 10px;
 }
 
 .table-body {
-    font-family: Arial, sans-serif;
     border-collapse: collapse;
+    background-color: #333;
+    color: #fff;
 }
 
 .table-body td, .table-body th {
-    border: 1px solid #ddd;
+    border: 1px solid #fff;
     padding: 3px;
 }
 
 
 .table-body tr:nth-child(even) {
-    background-color: #f2f2f2;
+    background-color: #444;
 }
 
 .table-body tr:hover {
-    background-color: #ddd;
+    background-color: #555;
 }
 
 .table-body th {
     padding-top: 12px;
     padding-bottom: 12px;
     text-align: left;
-    background-color: #4CAF50;
-    color: white;
+    background-color: #000;
+    color: #fff;
 }
 
 .titleRow {
     font-weight: bold;
     font-style:oblique;
+    color: #fff;
 }
 .double-handed {
     display: inline-block;
     width: 20px;
     height: 20px;
-    background-color: #fff;
-    border: 1px solid #000;
+    border: 1px solid #fff;
 }
 
-#level {
+
+#level, #requirements {
     margin-top: 10px;
     margin-bottom: 10px;
-    font-family: Arial;
     font-size: large;
 }

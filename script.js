@@ -1,10 +1,11 @@
 
-import * as attackJson from './attack.json' assert { type: 'json' };
-import * as scalingJson from './scaling.json' assert { type: 'json' };
-import * as correctGraphId from './correctGraphId.json' assert { type: 'json' };
-import * as correctGraph from './correctGraph.json' assert { type: 'json' };
-import * as attackParam from './attackElementCorrectParam.json' assert { type: 'json' };
-import * as passive from './passive.json' assert { type: 'json'}
+import * as attackJson from './database/attack.json' assert { type: 'json' };
+import * as scalingJson from './database/scaling.json' assert { type: 'json' };
+import * as correctGraphId from './database/correctGraphId.json' assert { type: 'json' };
+import * as correctGraph from './database/correctGraph.json' assert { type: 'json' };
+import * as attackParam from './database/attackElementCorrectParam.json' assert { type: 'json' };
+import * as passive from './database/passive.json' assert { type: 'json'}
+import * as extraData from './database/extraData.json' assert { type: 'json'}
 
 function getWeaponAttack(name) {
     return attackJson.default.filter(
@@ -40,6 +41,31 @@ function getPassive(name) {
     return passive.default.filter(
         function(passive){ return passive.Name == name }
     )[0];
+}
+
+function getMaxUpgrade(name) {
+    return extraData.default.filter(
+        function(extraData){ return extraData.Name == name }
+    )[0]["Max Upgrade"];
+}
+
+function getExtraData(name) {
+    return extraData.default.filter(
+        function(extraData){ return extraData.Name == name }
+    )[0];
+}
+
+function getRequirements(name) {
+    var exData = getExtraData(name)
+    var sclList = ["Str", "Dex", "Int", "Fai", "Arc"]
+    var reqDict = {}
+
+    for (var i = 0; i < sclList.length; i++) {
+        var reqNumber = exData["Required (" + sclList[i] + ")"]
+        if (reqNumber != 0) reqDict[sclList[i]] = reqNumber
+    }
+
+    return reqDict
 }
 
 function CalcCorrectFormula(input, StatMin, StatMax, ExponentMin, GrowMin, GrowMax) {
@@ -216,10 +242,13 @@ function statSelection() {
         const select = document.createElement('select');
         select.id = stat.id;
     
-        for (let i = 1; i <= 99; i++) {
+        for (let i = 5; i <= 99; i++) {
             const option = document.createElement('option');
             option.value = i;
             option.text = i;
+            if (i === 10) {
+                option.selected = true;
+            }
             select.appendChild(option);
         }
   
@@ -235,7 +264,7 @@ function showUpgrade() {
     for (let i = 0; i <= 25; i++) {
         const option = document.createElement('option');
         option.value = i;
-        option.text = i;
+        option.text = "+" + i;
         select.appendChild(option);
     }
 }
@@ -309,13 +338,15 @@ function calculateButton() {
         const weaponAttributes = getWeaponAttack(selectedWeaponName);
         const tableBody = document.getElementById("attack");
 
+        var maxUpgrade = getMaxUpgrade(selectedWeaponName)
+
         tableBody.innerHTML = "Attack";
         var attList = ["Phys", "Mag", "Fire", "Ligh", "Holy", "Stam"]
 
         var titleRow = document.createElement("tr");
         titleRow.classList.add("titleRow")
         titleRow.appendChild(document.createElement("td"));
-        for (var i = 0; i <= 25; i++) {
+        for (var i = 0; i <= maxUpgrade; i++) {
             var titleName = document.createElement("td")
             titleName.innerHTML = "+" + i
             titleRow.appendChild(titleName);
@@ -328,7 +359,7 @@ function calculateButton() {
             attributeName.classList.add("titleRow")
             attributeName.innerHTML = attList[i];
             tableRow.appendChild(attributeName);
-            for (var j = 0; j <= 25; j++) {
+            for (var j = 0; j <= maxUpgrade; j++) {
                 var nameCol = attList[i] + " +" + j;
                 var attributeValue = document.createElement("td");
                 var damage = weaponAttributes[0][nameCol]
@@ -348,7 +379,7 @@ function calculateButton() {
         titleRow = document.createElement("tr");
         titleRow.classList.add("titleRow")
         titleRow.appendChild(document.createElement("td"));
-        for (var i = 0; i <= 25; i++) {
+        for (var i = 0; i <= maxUpgrade; i++) {
             var titleName = document.createElement("td")
             titleName.innerHTML = "+" + i
             titleRow.appendChild(titleName);
@@ -361,7 +392,7 @@ function calculateButton() {
             attributeName.classList.add("titleRow")
             attributeName.innerHTML = sclList[i];
             tableRow.appendChild(attributeName);
-            for (var j = 0; j <= 25; j++) {
+            for (var j = 0; j <= maxUpgrade; j++) {
                 var nameCol = sclList[i] + " +" + j;
                 var attributeValue = document.createElement("td");
                 attributeValue.innerHTML = getLetterFromScaling(weaponScaling[0][nameCol])
@@ -383,20 +414,42 @@ function calculateButton() {
         var playerLevel = (strPlayer + dexPlayer + intPlayer + faiPlayer + arcPlayer + vigPlayer + minPlayer + endPlayer) - 79
         var upgradeCost = Math.floor((Math.pow(playerLevel + 81, 2) * (Math.max(((playerLevel + 81 - 92) * 0.02), 0) + 0.1)) + 1)
 
-        var levelDiv = document.getElementById("level")
-        levelDiv.innerText = "Level: " + playerLevel + ". Upgrade cost: " + upgradeCost
-
         if (document.getElementById("double-handed").checked) {
             strPlayer = parseInt(1.5 * strPlayer)
         }
 
         var playerStats = [strPlayer, dexPlayer, intPlayer, faiPlayer, arcPlayer]
 
+        var levelDiv = document.getElementById("level")
+        levelDiv.innerHTML = "Level: <b>" + playerLevel + "</b>. Runes to next level: <b>" + upgradeCost + "</b>"
+
+        var requirementsDiv = document.getElementById("requirements")
+        var reqDict = getRequirements(selectedWeaponName)
+        var reqNames = Object.keys(reqDict)
+
+        requirementsDiv.innerHTML = "Requirements: "
+        var reqNotMet = []
+
+        for (i in reqNames) {
+            var reqValue = reqDict[reqNames[i]]
+            requirementsDiv.innerHTML += reqNames[i] + ": " + reqValue + " "
+            if (reqValue > playerStats[i]) {
+                requirementsDiv.innerHTML += "(not met) "
+                reqNotMet.push(reqNames[i])
+            } else requirementsDiv.innerHTML += "(met) "
+        }
+
+        var tableBodyCalc = document.getElementById("calculations");
+        if (reqNotMet.length != 0) {
+            tableBodyCalc.innerHTML = "Cannot calculate with not met requirements: <b>"
+            for (i in reqNotMet) tableBodyCalc.innerHTML += i == 0 ? reqNotMet[i] : ", " + reqNotMet[i]
+            return
+        }
+
         var [baseDamageDict, scaleDamage, finalDamageOutput, total] = getStatFromPlayer(playerStats, selectedWeaponName, weaponLevel)
 
         var passEffect = getPassive(selectedWeaponName)
 
-        const tableBodyCalc = document.getElementById("calculations");
         tableBodyCalc.innerHTML = "Calculations";
 
         titleRow = document.createElement("tr");
@@ -450,43 +503,68 @@ function calculateButton() {
             tableRow.appendChild(attributeValue);
             tableBodyCalc.appendChild(tableRow);
 
-            if (i != 4) continue
-
-            // Passive effects title
-            if (passive1 != "") {
+            if (i == 2) {
                 attributeValue = document.createElement("td")
-                attributeValue.innerHTML = passive1
+                attributeValue.innerHTML = "HP"
+                tableRow.appendChild(attributeValue);
+
+                attributeValue = document.createElement("td")
+                attributeValue.innerHTML = "FP"
+                tableRow.appendChild(attributeValue);
+
+                attributeValue = document.createElement("td")
+                attributeValue.innerHTML = "Stamina"
+                tableRow.appendChild(attributeValue);
+
+                attributeValue = document.createElement("td")
+                attributeValue.innerHTML = "Eq. Load"
+                tableRow.appendChild(attributeValue);
+
+                attributeValue = document.createElement("td")
+                attributeValue.innerHTML = "Mid Roll"
                 tableRow.appendChild(attributeValue);
             }
-    
-            if (passive2 != "") {
+
+            if (i == 3) {
                 attributeValue = document.createElement("td")
-                attributeValue.innerHTML = passive2
+                attributeValue.innerHTML = getHp(vigPlayer)
                 tableRow.appendChild(attributeValue);
+        
+                attributeValue = document.createElement("td")
+                attributeValue.innerHTML = getFp(minPlayer)
+                tableRow.appendChild(attributeValue);
+        
+                attributeValue = document.createElement("td")
+                attributeValue.innerHTML = getStamina(endPlayer)
+                tableRow.appendChild(attributeValue);
+        
+                attributeValue = document.createElement("td")
+                var eqLoad = getEquipLoad(endPlayer)
+                attributeValue.innerHTML = eqLoad.toFixed(2)
+                tableRow.appendChild(attributeValue);
+        
+                attributeValue = document.createElement("td")
+                attributeValue.innerHTML = (eqLoad * 0.6999).toFixed(2)
+                tableRow.appendChild(attributeValue);
+        
+                
             }
 
-            attributeValue = document.createElement("td")
-            attributeValue.innerHTML = "HP"
-            tableRow.appendChild(attributeValue);
+            if (i == 4) {
+                // Passive effects title
+                if (passive1 != "") {
+                    attributeValue = document.createElement("td")
+                    attributeValue.innerHTML = passive1
+                    tableRow.appendChild(attributeValue);
+                }
 
-            attributeValue = document.createElement("td")
-            attributeValue.innerHTML = "FP"
-            tableRow.appendChild(attributeValue);
-
-            attributeValue = document.createElement("td")
-            attributeValue.innerHTML = "Stamina"
-            tableRow.appendChild(attributeValue);
-
-            attributeValue = document.createElement("td")
-            attributeValue.innerHTML = "Eq. Load"
-            tableRow.appendChild(attributeValue);
-
-            attributeValue = document.createElement("td")
-            attributeValue.innerHTML = "Mid Roll"
-            tableRow.appendChild(attributeValue);
-
+                if (passive2 != "") {
+                    attributeValue = document.createElement("td")
+                    attributeValue.innerHTML = passive2
+                    tableRow.appendChild(attributeValue);
+                }
+            }
         }
-
 
         tableRow = document.createElement("tr");
         tableRow.classList.add("titleRow")
@@ -514,30 +592,7 @@ function calculateButton() {
             tableRow.appendChild(attributeValue);
         }
 
-        attributeValue = document.createElement("td")
-        attributeValue.innerHTML = getHp(vigPlayer)
-        tableRow.appendChild(attributeValue);
-
-        attributeValue = document.createElement("td")
-        attributeValue.innerHTML = getFp(minPlayer)
-        tableRow.appendChild(attributeValue);
-
-        attributeValue = document.createElement("td")
-        attributeValue.innerHTML = getStamina(endPlayer)
-        tableRow.appendChild(attributeValue);
-
-        attributeValue = document.createElement("td")
-        var eqLoad = getEquipLoad(endPlayer)
-        attributeValue.innerHTML = eqLoad.toFixed(2)
-        tableRow.appendChild(attributeValue);
-
-        attributeValue = document.createElement("td")
-        attributeValue.innerHTML = (eqLoad * 0.6999).toFixed(2)
-        tableRow.appendChild(attributeValue);
-
         tableBodyCalc.appendChild(tableRow);
-
-        
     });
 }
 
