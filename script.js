@@ -259,7 +259,16 @@ function statSelection() {
 }
 
 function showUpgrade() {
-    const select = document.getElementById('upgrade-selection');
+    var select = document.getElementById('upgrade-selection-right');
+
+    for (let i = 0; i <= 25; i++) {
+        const option = document.createElement('option');
+        option.value = i;
+        option.text = "+" + i;
+        select.appendChild(option);
+    }
+
+    select = document.getElementById('upgrade-selection-left');
 
     for (let i = 0; i <= 25; i++) {
         const option = document.createElement('option');
@@ -319,87 +328,227 @@ function showStartingClass() {
 function getLetterFromScaling(num) {
     num = parseFloat(num)
     switch(true) {
-        case num > 1.75: return "S(" + parseInt(num * 100) + ")";
-        case num >= 1.4: return "A(" + parseInt(num * 100) + ")";
-        case num >= 0.9: return "B(" + parseInt(num * 100) + ")";
-        case num >= 0.6: return "C(" + parseInt(num * 100) + ")";
-        case num >= 0.25: return "D(" + parseInt(num * 100) + ")";
+        case num > 1.75: return "S";
+        case num >= 1.4: return "A";
+        case num >= 0.9: return "B";
+        case num >= 0.6: return "C";
+        case num >= 0.25: return "D";
         case num == 0: return "-";
-        default: return "E(" + parseInt(num * 100) + ")";
+        default: return "E";
     }
 }
 
+function displayCalculations(divId, reqNotMet, playerStats, selectedWeaponName, weaponLevel, vigPlayer, minPlayer, endPlayer, doubleHanded, showPlayerStats) {
+    var attList = ["Phys", "Mag", "Fire", "Ligh", "Holy", "Stam"]
+    var sclList = ["Str", "Dex", "Int", "Fai", "Arc"]
+
+    if (doubleHanded) {
+        playerStats[0] = parseInt(1.5 * playerStats[0])
+    }
+
+    var tableBodyCalc = document.getElementById(divId);
+    if (reqNotMet.length != 0) {
+        tableBodyCalc.innerHTML = "Cannot calculate " + selectedWeaponName + " with not met requirements: <b>"
+        for (i in reqNotMet) tableBodyCalc.innerHTML += i == 0 ? reqNotMet[i] : ", " + reqNotMet[i]
+        return
+    }
+
+    var [baseDamageDict, scaleDamage, finalDamageOutput, total] = getStatFromPlayer(playerStats.slice(), selectedWeaponName, weaponLevel)
+
+    var passEffect = getPassive(selectedWeaponName)
+
+    tableBodyCalc.innerHTML = selectedWeaponName + " +" + weaponLevel;
+
+    var titleRow = document.createElement("tr");
+    titleRow.classList.add("titleRow")
+    titleRow.appendChild(document.createElement("th"));
+
+    var titleName = document.createElement("th")
+    titleName.innerHTML = "Base Damage"
+    titleRow.appendChild(titleName);
+    
+    for (i = 0; i < 5; i++) {
+        titleName = document.createElement("th")
+        titleName.innerHTML = sclList[i] + " Scaling"
+        titleRow.appendChild(titleName);
+    }
+
+    titleName = document.createElement("th")
+    titleName.innerHTML = "Final Damage"
+    titleRow.appendChild(titleName);
+
+    var passive1 = passEffect["Type 1"]
+    var passive2 = passEffect["Type 2"]
+
+    
+
+    tableBodyCalc.appendChild(titleRow);
+
+    for (var i = 0; i < 5; i++) {
+        var tableRow = document.createElement("tr");
+        var attributeName = document.createElement("td");
+        attributeName.classList.add("titleRow")
+        attributeName.innerHTML = attList[i];
+        tableRow.appendChild(attributeName);
+
+        var attributeValue = document.createElement("td");
+        attributeValue.innerHTML = baseDamageDict[attList[i]].toFixed(2)
+        tableRow.appendChild(attributeValue);
+        tableBodyCalc.appendChild(tableRow);
+
+        for (var j = 0; j < 5; j++) {
+            attributeValue = document.createElement("td");
+            var currentScale = scaleDamage[attList[i]][sclList[j]]
+            attributeValue.innerHTML = (currentScale == 0 ? "-" : currentScale.toFixed(2))
+            tableRow.appendChild(attributeValue);
+            tableBodyCalc.appendChild(tableRow);
+
+        }
+
+        attributeValue = document.createElement("td");
+        attributeValue.innerHTML = finalDamageOutput[attList[i]].toFixed(2)
+        tableRow.appendChild(attributeValue);
+        tableBodyCalc.appendChild(tableRow);
+
+        if (i == 4) {
+            // Passive effects title
+            if (passive1 != "") {
+                attributeValue = document.createElement("td")
+                attributeValue.innerHTML = passive1
+                tableRow.appendChild(attributeValue);
+            }
+
+            if (passive2 != "") {
+                attributeValue = document.createElement("td")
+                attributeValue.innerHTML = passive2
+                tableRow.appendChild(attributeValue);
+            }
+        }
+
+        if (showPlayerStats == 0) continue
+
+        if (i == 2) {
+            attributeValue = document.createElement("td")
+            attributeValue.innerHTML = "HP"
+            tableRow.appendChild(attributeValue);
+
+            attributeValue = document.createElement("td")
+            attributeValue.innerHTML = "FP"
+            tableRow.appendChild(attributeValue);
+
+            attributeValue = document.createElement("td")
+            attributeValue.innerHTML = "Stamina"
+            tableRow.appendChild(attributeValue);
+
+            attributeValue = document.createElement("td")
+            attributeValue.innerHTML = "Eq. Load"
+            tableRow.appendChild(attributeValue);
+
+            attributeValue = document.createElement("td")
+            attributeValue.innerHTML = "Mid Roll"
+            tableRow.appendChild(attributeValue);
+        }
+
+        if (i == 3) {
+            attributeValue = document.createElement("td")
+            attributeValue.innerHTML = getHp(vigPlayer)
+            tableRow.appendChild(attributeValue);
+    
+            attributeValue = document.createElement("td")
+            attributeValue.innerHTML = getFp(minPlayer)
+            tableRow.appendChild(attributeValue);
+    
+            attributeValue = document.createElement("td")
+            attributeValue.innerHTML = getStamina(endPlayer)
+            tableRow.appendChild(attributeValue);
+    
+            attributeValue = document.createElement("td")
+            var eqLoad = getEquipLoad(endPlayer)
+            attributeValue.innerHTML = eqLoad.toFixed(2)
+            tableRow.appendChild(attributeValue);
+    
+            attributeValue = document.createElement("td")
+            attributeValue.innerHTML = (eqLoad * 0.6999).toFixed(2)
+            tableRow.appendChild(attributeValue);
+        }
+    }
+
+    tableRow = document.createElement("tr");
+    tableRow.classList.add("titleRow")
+
+    attributeName = document.createElement("td");
+    attributeName.classList.add("titleRow")
+    attributeName.innerHTML = "TOTAL";
+    tableRow.appendChild(attributeName);
+
+    for (i = 0; i < 6; i++) tableRow.appendChild(document.createElement("td"));
+    attributeValue = document.createElement("td");
+    attributeValue.innerHTML = total.toFixed(2)
+    tableRow.appendChild(attributeValue);
+
+    // Passive effects value
+    if (passive1 != "") {
+        attributeValue = document.createElement("td")
+        var currPassEffect = passEffect[passive1 + " +" + weaponLevel]
+        attributeValue.innerHTML = currPassEffect == currPassEffect ? passEffect[passive1 + " +0"] : currPassEffect
+        tableRow.appendChild(attributeValue);
+    }
+
+    if (passive2 != "") {
+        attributeValue = document.createElement("td")
+        var currPassEffect = passEffect[passive2 + " +" + weaponLevel]
+        attributeValue.innerHTML = currPassEffect == currPassEffect ? passEffect[passive2 + " +0"] : currPassEffect
+        tableRow.appendChild(attributeValue);
+    }
+
+    tableBodyCalc.appendChild(tableRow);
+}
+
+function displayRequirements(divId, selectedWeaponName, playerStats, doubleHanded) {
+    if (doubleHanded) {
+        playerStats[0] = parseInt(1.5 * playerStats[0])
+    }
+    var requirementsDiv = document.getElementById(divId)
+    var reqDict = getRequirements(selectedWeaponName)
+    var reqNames = Object.keys(reqDict)
+
+    requirementsDiv.innerHTML = "Requirements: "
+    var reqNotMet = []
+
+    var statDict = {"Str": 0, "Dex": 1, "Int": 2, "Fai": 3, "Arc": 4}
+    for (var i in reqNames) {
+        var reqValue = reqDict[reqNames[i]]
+        requirementsDiv.innerHTML += reqNames[i] + ": " + reqValue + " "
+        if (reqValue > playerStats[statDict[reqNames[i]]]) {
+            requirementsDiv.innerHTML += "(not met) "
+            reqNotMet.push(reqNames[i])
+        } else requirementsDiv.innerHTML += "(met) "
+    }
+
+    return reqNotMet
+}
+
+function clearInfoTables() {
+    document.getElementById("compareAttTable").innerHTML = "";
+    document.getElementById("compareSclTable").innerHTML = "";
+    document.getElementById("compareFinalTable").innerHTML = "";
+    document.getElementById("calculationsRight-title").innerHTML = "";
+    document.getElementById("calculationsRight").innerHTML = "";
+    document.getElementById("calculationsLeft-title").innerHTML = "";
+    document.getElementById("calculationsLeft").innerHTML = "";
+    document.getElementById("finalComparisonTitle").innerHTML = "";
+}
+
 function calculateButton() {
-    const weaponsDropdown = document.getElementById("weapons-dropdown");
+    const rightWeaponsDropdown = document.getElementById("weapons-dropdown-right");
+    const leftWeaponsDropdown = document.getElementById("weapons-dropdown-left");
     const calculateButton = document.getElementById("calculate-button");
 
     calculateButton.addEventListener("click", function() {
-        const selectedWeaponName = weaponsDropdown.value
-        const weaponAttributes = getWeaponAttack(selectedWeaponName);
-        const tableBody = document.getElementById("attack");
+        const selectedRightWeaponName = rightWeaponsDropdown.value
+        const selectedLeftWeaponName = leftWeaponsDropdown.value
 
-        var maxUpgrade = getMaxUpgrade(selectedWeaponName)
-
-        tableBody.innerHTML = "Attack";
-        var attList = ["Phys", "Mag", "Fire", "Ligh", "Holy", "Stam"]
-
-        var titleRow = document.createElement("tr");
-        titleRow.classList.add("titleRow")
-        titleRow.appendChild(document.createElement("td"));
-        for (var i = 0; i <= maxUpgrade; i++) {
-            var titleName = document.createElement("td")
-            titleName.innerHTML = "+" + i
-            titleRow.appendChild(titleName);
-        }
-        tableBody.appendChild(titleRow);
-        
-        for (var i = 0; i < attList.length; i++) {
-            var tableRow = document.createElement("tr");
-            var attributeName = document.createElement("td");
-            attributeName.classList.add("titleRow")
-            attributeName.innerHTML = attList[i];
-            tableRow.appendChild(attributeName);
-            for (var j = 0; j <= maxUpgrade; j++) {
-                var nameCol = attList[i] + " +" + j;
-                var attributeValue = document.createElement("td");
-                var damage = weaponAttributes[0][nameCol]
-                attributeValue.innerHTML = (damage == 0 ? "-" : parseInt(damage))
-                tableRow.appendChild(attributeValue);
-            }
-            tableBody.appendChild(tableRow);
-        }
-
-        var weaponScaling = getWeaponScale(selectedWeaponName)
-
-        var sclList = ["Str", "Dex", "Int", "Fai", "Arc"]
-        const tableBodyScale = document.getElementById("scalesWith");
-        tableBodyScale.innerHTML = "Scaling";
-
-
-        titleRow = document.createElement("tr");
-        titleRow.classList.add("titleRow")
-        titleRow.appendChild(document.createElement("td"));
-        for (var i = 0; i <= maxUpgrade; i++) {
-            var titleName = document.createElement("td")
-            titleName.innerHTML = "+" + i
-            titleRow.appendChild(titleName);
-        }
-        tableBodyScale.appendChild(titleRow);
-        
-        for (var i = 0; i < sclList.length; i++) {
-            var tableRow = document.createElement("tr");
-            var attributeName = document.createElement("td");
-            attributeName.classList.add("titleRow")
-            attributeName.innerHTML = sclList[i];
-            tableRow.appendChild(attributeName);
-            for (var j = 0; j <= maxUpgrade; j++) {
-                var nameCol = sclList[i] + " +" + j;
-                var attributeValue = document.createElement("td");
-                attributeValue.innerHTML = getLetterFromScaling(weaponScaling[0][nameCol])
-                tableRow.appendChild(attributeValue);
-            }
-            tableBodyScale.appendChild(tableRow);
-        }
+        clearInfoTables()
 
         var strPlayer = parseInt(document.getElementById("strength").value)
         var dexPlayer = parseInt(document.getElementById("dexterity").value)
@@ -409,191 +558,226 @@ function calculateButton() {
         var vigPlayer = parseInt(document.getElementById("vigor").value)
         var minPlayer = parseInt(document.getElementById("mind").value)
         var endPlayer = parseInt(document.getElementById("endurance").value)
-        var weaponLevel = parseInt(document.getElementById("upgrade-selection").value)
+        var rightWeaponLevel = parseInt(document.getElementById("upgrade-selection-right").value)
+        var leftWeaponLevel = parseInt(document.getElementById("upgrade-selection-left").value)
 
         var playerLevel = (strPlayer + dexPlayer + intPlayer + faiPlayer + arcPlayer + vigPlayer + minPlayer + endPlayer) - 79
         var upgradeCost = Math.floor((Math.pow(playerLevel + 81, 2) * (Math.max(((playerLevel + 81 - 92) * 0.02), 0) + 0.1)) + 1)
-
-        if (document.getElementById("double-handed").checked) {
-            strPlayer = parseInt(1.5 * strPlayer)
-        }
 
         var playerStats = [strPlayer, dexPlayer, intPlayer, faiPlayer, arcPlayer]
 
         var levelDiv = document.getElementById("level")
         levelDiv.innerHTML = "Level: <b>" + playerLevel + "</b>. Runes to next level: <b>" + upgradeCost + "</b>"
 
-        var requirementsDiv = document.getElementById("requirements")
-        var reqDict = getRequirements(selectedWeaponName)
-        var reqNames = Object.keys(reqDict)
+        var reqNotMetRight = displayRequirements("requirements-right", selectedRightWeaponName, playerStats.slice(), document.getElementById("double-handed-right").checked)
+        var reqNotMetLeft = displayRequirements("requirements-left", selectedLeftWeaponName, playerStats.slice(), document.getElementById("double-handed-left").checked)
 
-        requirementsDiv.innerHTML = "Requirements: "
-        var reqNotMet = []
+        displayCalculations("calculationsRight", reqNotMetRight, playerStats.slice(), selectedRightWeaponName, rightWeaponLevel, vigPlayer, minPlayer, endPlayer, document.getElementById("double-handed-right").checked, 0)
+        displayCalculations("calculationsLeft", reqNotMetLeft, playerStats.slice(), selectedLeftWeaponName, leftWeaponLevel, vigPlayer, minPlayer, endPlayer, document.getElementById("double-handed-left").checked, 1)
+    });
+}
 
-        var statDict = {"Str": 0, "Dex": 1, "Int": 2, "Fai": 3, "Arc": 4}
-        for (i in reqNames) {
-            var reqValue = reqDict[reqNames[i]]
-            requirementsDiv.innerHTML += reqNames[i] + ": " + reqValue + " "
-            if (reqValue > playerStats[statDict[reqNames[i]]]) {
-                requirementsDiv.innerHTML += "(not met) "
-                reqNotMet.push(reqNames[i])
-            } else requirementsDiv.innerHTML += "(met) "
-        }
+function displayCompareAtt(tableName, weaponAttributes1, selectedWeaponName1, weaponAttributes2, selectedWeaponName2) {
 
-        var tableBodyCalc = document.getElementById("calculations");
-        if (reqNotMet.length != 0) {
-            tableBodyCalc.innerHTML = "Cannot calculate with not met requirements: <b>"
-            for (i in reqNotMet) tableBodyCalc.innerHTML += i == 0 ? reqNotMet[i] : ", " + reqNotMet[i]
-            return
-        }
+    var table = document.getElementById(tableName)
+    table.innerHTML = "<p> <b> Attack comparison </b> </p>"
 
-        var [baseDamageDict, scaleDamage, finalDamageOutput, total] = getStatFromPlayer(playerStats, selectedWeaponName, weaponLevel)
+    var maxUpgrade = Math.max(getMaxUpgrade(selectedWeaponName1), getMaxUpgrade(selectedWeaponName2))
+    var attList = ["Phys", "Mag", "Fire", "Ligh", "Holy", "Stam"]
+    
+    
+    for (var i = 0; i < attList.length; i++) {
 
-        var passEffect = getPassive(selectedWeaponName)
+        if ((weaponAttributes1[0][attList[i] + " +0"] == 0) && (weaponAttributes2[0][attList[i] + " +0"] == 0)) continue
 
-        tableBodyCalc.innerHTML = "Calculations";
+        var tableBody = document.createElement("tbody")
+        tableBody.innerHTML = attList[i] + " comparison <br> "
 
-        titleRow = document.createElement("tr");
-        titleRow.classList.add("titleRow")
-        titleRow.appendChild(document.createElement("td"));
-
-        titleName = document.createElement("td")
-        titleName.innerHTML = "Base Damage"
-        titleRow.appendChild(titleName);
-        
-        for (i = 0; i < 5; i++) {
-            titleName = document.createElement("td")
-            titleName.innerHTML = sclList[i] + " Scaling"
-            titleRow.appendChild(titleName);
-        }
-
-        titleName = document.createElement("td")
-        titleName.innerHTML = "Final Damage"
-        titleRow.appendChild(titleName);
-
-        var passive1 = passEffect["Type 1"]
-        var passive2 = passEffect["Type 2"]
-
-        
-
-        tableBodyCalc.appendChild(titleRow);
-
-        for (i = 0; i < 5; i++) {
-            tableRow = document.createElement("tr");
-            attributeName = document.createElement("td");
-            attributeName.classList.add("titleRow")
-            attributeName.innerHTML = attList[i];
-            tableRow.appendChild(attributeName);
-
-            attributeValue = document.createElement("td");
-            attributeValue.innerHTML = baseDamageDict[attList[i]].toFixed(2)
-            tableRow.appendChild(attributeValue);
-            tableBodyCalc.appendChild(tableRow);
-
-            for (var j = 0; j < 5; j++) {
-                attributeValue = document.createElement("td");
-                var currentScale = scaleDamage[attList[i]][sclList[j]]
-                attributeValue.innerHTML = (currentScale == 0 ? "-" : currentScale.toFixed(2))
-                tableRow.appendChild(attributeValue);
-                tableBodyCalc.appendChild(tableRow);
-
+        if (i == 0) {
+            var titleRow = document.createElement("tr");
+            titleRow.classList.add("titleRow")
+            titleRow.appendChild(document.createElement("th"));
+            for (var j = 0; j <= maxUpgrade; j++) {
+                var titleName = document.createElement("th")
+                titleName.innerHTML = "+" + j
+                titleRow.appendChild(titleName);
             }
-
-            attributeValue = document.createElement("td");
-            attributeValue.innerHTML = finalDamageOutput[attList[i]].toFixed(2)
-            tableRow.appendChild(attributeValue);
-            tableBodyCalc.appendChild(tableRow);
-
-            if (i == 2) {
-                attributeValue = document.createElement("td")
-                attributeValue.innerHTML = "HP"
-                tableRow.appendChild(attributeValue);
-
-                attributeValue = document.createElement("td")
-                attributeValue.innerHTML = "FP"
-                tableRow.appendChild(attributeValue);
-
-                attributeValue = document.createElement("td")
-                attributeValue.innerHTML = "Stamina"
-                tableRow.appendChild(attributeValue);
-
-                attributeValue = document.createElement("td")
-                attributeValue.innerHTML = "Eq. Load"
-                tableRow.appendChild(attributeValue);
-
-                attributeValue = document.createElement("td")
-                attributeValue.innerHTML = "Mid Roll"
-                tableRow.appendChild(attributeValue);
-            }
-
-            if (i == 3) {
-                attributeValue = document.createElement("td")
-                attributeValue.innerHTML = getHp(vigPlayer)
-                tableRow.appendChild(attributeValue);
-        
-                attributeValue = document.createElement("td")
-                attributeValue.innerHTML = getFp(minPlayer)
-                tableRow.appendChild(attributeValue);
-        
-                attributeValue = document.createElement("td")
-                attributeValue.innerHTML = getStamina(endPlayer)
-                tableRow.appendChild(attributeValue);
-        
-                attributeValue = document.createElement("td")
-                var eqLoad = getEquipLoad(endPlayer)
-                attributeValue.innerHTML = eqLoad.toFixed(2)
-                tableRow.appendChild(attributeValue);
-        
-                attributeValue = document.createElement("td")
-                attributeValue.innerHTML = (eqLoad * 0.6999).toFixed(2)
-                tableRow.appendChild(attributeValue);
-        
-                
-            }
-
-            if (i == 4) {
-                // Passive effects title
-                if (passive1 != "") {
-                    attributeValue = document.createElement("td")
-                    attributeValue.innerHTML = passive1
-                    tableRow.appendChild(attributeValue);
-                }
-
-                if (passive2 != "") {
-                    attributeValue = document.createElement("td")
-                    attributeValue.innerHTML = passive2
-                    tableRow.appendChild(attributeValue);
-                }
-            }
+    
+            tableBody.appendChild(titleRow);
         }
-
-        tableRow = document.createElement("tr");
-        tableRow.classList.add("titleRow")
-
-        attributeName = document.createElement("td");
+        
+        var tableRow = document.createElement("tr");
+        var attributeName = document.createElement("td");
         attributeName.classList.add("titleRow")
-        attributeName.innerHTML = "TOTAL";
+        attributeName.innerHTML = selectedWeaponName1;
         tableRow.appendChild(attributeName);
+        for (var j = 0; j <= maxUpgrade; j++) {
+            var nameCol = attList[i] + " +" + j;
+            var attributeValue = document.createElement("td");
+            var damage = weaponAttributes1[0][nameCol]
+            attributeValue.innerHTML = (damage == 0 ? "-" : parseInt(damage))
+            tableRow.appendChild(attributeValue);
+        }
+        tableBody.appendChild(tableRow);
 
-        for (i = 0; i < 6; i++) tableRow.appendChild(document.createElement("td"));
-        attributeValue = document.createElement("td");
-        attributeValue.innerHTML = total.toFixed(2)
+        var tableRow = document.createElement("tr");
+        var attributeName = document.createElement("td");
+        attributeName.classList.add("titleRow")
+        attributeName.innerHTML = selectedWeaponName2;
+        tableRow.appendChild(attributeName);
+        for (var j = 0; j <= maxUpgrade; j++) {
+            var nameCol = attList[i] + " +" + j;
+            var attributeValue = document.createElement("td");
+            var damage = weaponAttributes2[0][nameCol]
+            attributeValue.innerHTML = (damage == 0 ? "-" : parseInt(damage))
+            tableRow.appendChild(attributeValue);
+        }
+        tableBody.appendChild(tableRow);
+        table.appendChild(tableBody)
+        
+    }
+}
+
+
+
+function displayCompareScl(tableName, weaponScaling1, selectedWeaponName1, weaponScaling2, selectedWeaponName2) {
+
+    var table = document.getElementById(tableName)
+    table.innerHTML = "<p> <b> Scaling comparison </b> </p>"
+
+    var maxUpgrade = Math.max(getMaxUpgrade(selectedWeaponName1), getMaxUpgrade(selectedWeaponName2))
+    var sclList = ["Str", "Dex", "Int", "Fai", "Arc"]
+    
+    
+    for (var i = 0; i < sclList.length; i++) {
+
+        if ((weaponScaling1[0][sclList[i] + " +0"] == 0) && (weaponScaling2[0][sclList[i] + " +0"] == 0)) continue
+
+        var tableBody = document.createElement("tbody")
+        tableBody.innerHTML = sclList[i] + " comparison <br> "
+
+        if (i == 0) {
+            var titleRow = document.createElement("tr");
+            titleRow.classList.add("titleRow")
+            titleRow.appendChild(document.createElement("th"));
+            for (var j = 0; j <= maxUpgrade; j++) {
+                var titleName = document.createElement("th")
+                titleName.innerHTML = "+" + j
+                titleRow.appendChild(titleName);
+            }
+    
+            tableBody.appendChild(titleRow);
+        }
+        
+        var tableRow = document.createElement("tr");
+        var attributeName = document.createElement("td");
+        attributeName.classList.add("titleRow")
+        attributeName.innerHTML = selectedWeaponName1;
+        tableRow.appendChild(attributeName);
+        for (var j = 0; j <= maxUpgrade; j++) {
+            var nameCol = sclList[i] + " +" + j;
+            var attributeValue = document.createElement("td");
+            var scale = weaponScaling1[0][nameCol]
+            var letter = getLetterFromScaling(scale)
+            attributeValue.innerHTML = (scale == 0 ? "-" : letter)
+            tableRow.appendChild(attributeValue);
+        }
+        tableBody.appendChild(tableRow);
+
+        var tableRow = document.createElement("tr");
+        var attributeName = document.createElement("td");
+        attributeName.classList.add("titleRow")
+        attributeName.innerHTML = selectedWeaponName2;
+        tableRow.appendChild(attributeName);
+        for (var j = 0; j <= maxUpgrade; j++) {
+            var nameCol = sclList[i] + " +" + j;
+            var attributeValue = document.createElement("td");
+            var scale = weaponScaling2[0][nameCol]
+            var letter = getLetterFromScaling(scale)
+            attributeValue.innerHTML = (scale == 0 ? "-" : letter)
+            tableRow.appendChild(attributeValue);
+        }
+        tableBody.appendChild(tableRow);
+        table.appendChild(tableBody)
+        
+    }
+}
+
+function weaponFinalComparison(tableName, playerStats, selectedWeaponName1, selectedWeaponName2) {
+    var table = document.getElementById(tableName)
+    document.getElementById("finalComparisonTitle").innerHTML = "<p> <b> Final damage output comparison </b>(taking account player stats)  </p>"
+    var maxUpgrade = Math.max(getMaxUpgrade(selectedWeaponName1), getMaxUpgrade(selectedWeaponName2))
+    var tableBody = document.createElement("tbody")
+
+    var titleRow = document.createElement("tr");
+    titleRow.classList.add("titleRow")
+    titleRow.appendChild(document.createElement("th"));
+    for (var j = 0; j <= maxUpgrade; j++) {
+        var titleName = document.createElement("th")
+        titleName.innerHTML = "+" + j
+        titleRow.appendChild(titleName);
+    }
+    tableBody.appendChild(titleRow);
+
+    var tableRow = document.createElement("tr");
+    var attributeName = document.createElement("td");
+    attributeName.classList.add("titleRow")
+    attributeName.innerHTML = selectedWeaponName1;
+    tableRow.appendChild(attributeName);
+
+    for (var i = 0; i <= maxUpgrade; i++) {
+        var attributeValue = document.createElement("td");
+        var [_, _, _, total] = getStatFromPlayer(playerStats.slice(), selectedWeaponName1, i)
+        attributeValue.innerHTML = total == 0 ? "-" : total.toFixed(2)
         tableRow.appendChild(attributeValue);
+    }
+    tableBody.appendChild(tableRow);
 
-        // Passive effects value
-        if (passive1 != "") {
-            attributeValue = document.createElement("td")
-            attributeValue.innerHTML = passEffect[passive1 + " +" + weaponLevel]
-            tableRow.appendChild(attributeValue);
-        }
+    var tableRow = document.createElement("tr");
+    var attributeName = document.createElement("td");
+    attributeName.classList.add("titleRow")
+    attributeName.innerHTML = selectedWeaponName2;
+    tableRow.appendChild(attributeName);
 
-        if (passive2 != "") {
-            attributeValue = document.createElement("td")
-            attributeValue.innerHTML = passEffect[passive2 + " +" + weaponLevel]
-            tableRow.appendChild(attributeValue);
-        }
+    for (i = 0; i <= maxUpgrade; i++) {
+        var attributeValue = document.createElement("td");
+        var [_, _, _, total] = getStatFromPlayer(playerStats.slice(), selectedWeaponName2, i)
+        attributeValue.innerHTML = total == 0 ? "-" : total.toFixed(2)
+        tableRow.appendChild(attributeValue);
+    }
+    tableBody.appendChild(tableRow);
 
-        tableBodyCalc.appendChild(tableRow);
+    table.appendChild(tableBody)
+}
+
+function weaponComparisonButton() {
+    const rightWeaponsDropdown = document.getElementById("weapons-dropdown-right");
+    const leftWeaponsDropdown = document.getElementById("weapons-dropdown-left");
+    const weaponComparisonButton = document.getElementById("weapon-comparison");
+
+    weaponComparisonButton.addEventListener("click", function() {
+        const selectedRightWeaponName = rightWeaponsDropdown.value
+        const selectedLeftWeaponName = leftWeaponsDropdown.value
+        const rightWeaponAttributes = getWeaponAttack(selectedRightWeaponName);
+        const leftWeaponAttributes = getWeaponAttack(selectedLeftWeaponName);
+        const rightWeaponScaling = getWeaponScale(selectedRightWeaponName)
+        const leftWeaponScaling = getWeaponScale(selectedLeftWeaponName)
+
+        var strPlayer = parseInt(document.getElementById("strength").value)
+        var dexPlayer = parseInt(document.getElementById("dexterity").value)
+        var intPlayer = parseInt(document.getElementById("intelligence").value)
+        var faiPlayer = parseInt(document.getElementById("faith").value)
+        var arcPlayer = parseInt(document.getElementById("arcane").value)
+
+        var playerStats = [strPlayer, dexPlayer, intPlayer, faiPlayer, arcPlayer]
+
+        clearInfoTables()
+
+        displayCompareAtt("compareAttTable", rightWeaponAttributes, selectedRightWeaponName, leftWeaponAttributes, selectedLeftWeaponName)
+        displayCompareScl("compareSclTable", rightWeaponScaling, selectedRightWeaponName, leftWeaponScaling, selectedLeftWeaponName)
+        weaponFinalComparison("compareFinalTable", playerStats, selectedRightWeaponName, selectedLeftWeaponName)
+
+        
     });
 }
 
@@ -606,6 +790,7 @@ function main() {
     showUpgrade()
     showStartingClass()
     calculateButton()
+    weaponComparisonButton()
 }
 
 main()

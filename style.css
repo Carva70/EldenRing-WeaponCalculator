@@ -7,7 +7,7 @@ body {
     font-size: 16px;
 }
 
-#weapons-dropdown, #upgrade-selection, #starting-class, #calculate-button{
+.general-select{
     margin-left: 10px;
     width: 200px;
     padding: 10px;
@@ -60,7 +60,7 @@ body {
 }
 
 .table-body td, .table-body th {
-    border: 1px solid #fff;
+    border: 1px solid #777;
     padding: 3px;
 }
 
@@ -74,10 +74,10 @@ body {
 }
 
 .table-body th {
-    padding-top: 12px;
-    padding-bottom: 12px;
+    padding-top: 3px;
+    padding-bottom: 3px;
     text-align: left;
-    background-color: #000;
+    background-color: #222;
     color: #fff;
 }
 
@@ -86,7 +86,7 @@ body {
     font-style:oblique;
     color: #fff;
 }
-.double-handed {
+.generalCheckbox {
     display: inline-block;
     width: 20px;
     height: 20px;
@@ -98,4 +98,8 @@ body {
     margin-top: 10px;
     margin-bottom: 10px;
     font-size: large;
+}
+
+.weaponSelection {
+    margin-top: 3px;
 }

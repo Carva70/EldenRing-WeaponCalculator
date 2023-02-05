@@ -18,31 +18,56 @@
             </div>
 
             <div class="weaponSelection">
-                <input list="weapons-dropdown-brow" id="weapons-dropdown" type="text" placeholder="Select Weapon"/>
-                <datalist id="weapons-dropdown-brow">
+                <input list="weapons-dropdown-brow" id="weapons-dropdown-right" type="text" placeholder="Right Hand Weapon" class="general-select"/>
+                <datalist id="weapons-dropdown-brow" class="general-select">
                     <option value="" disabled selected>Select a Weapon</option>
                 </datalist>
-                <select id="upgrade-selection">
+                <select id="upgrade-selection-right" class="general-select">
                     <option value=0 disabled selected>Upgrade Level</option>
                 </select>
-                    <input type="checkbox" class="double-handed" id="double-handed">
+                    <input type="checkbox" class="generalCheckbox" id="double-handed-right">
+                    Double Handed
+            </div>
+
+            <div class="weaponSelection">
+                <input list="weapons-dropdown-brow" id="weapons-dropdown-left" type="text" placeholder="Left Hand Weapon" class="general-select"/>
+                <datalist id="weapons-dropdown-brow" class="general-select">
+                    <option value="" disabled selected>Select a Weapon</option>
+                </datalist>
+                <select id="upgrade-selection-left" class="general-select">
+                    <option value=0 disabled selected>Upgrade Level</option>
+                </select>
+                    <input type="checkbox" class="generalCheckbox" id="double-handed-left">
                     Double Handed
         
-                <button id="calculate-button">Calculate</button>
+                <button id="calculate-button" class="general-select">Calculate</button>
+                <button id="weapon-comparison" class="general-select">Weapon Comparison</button>
             </div>
         </div>
 
         <div id="level"></div>
-        <div id="requirements"></div>
+        <div id="requirements-right"></div>
+        <div id="requirements-left"></div>
+        <p id="finalComparisonTitle"></p>
+        <table id="compareFinalTable" class="table-body">
+
+        </table>
+        <table id="compareAttTable" class="table-body">
+
+        </table>
+        <table id="compareSclTable" class="table-body">
+        </table>
+        
+        <p id="calculationsRight-title"></p>
         <table>
-            <tbody class="table-body" id="attack">
+            <tbody class="table-body" id="calculationsRight">
             </tbody>
-            <tbody class="table-body" id="scalesWith">
+        </table>
+        <p id="calculationsLeft-title"></p>
+        <table>
+            <tbody class="table-body" id="calculationsLeft">
             </tbody>
-        </table><table>
-            <tbody class="table-body" id="calculations">
-            </tbody>
-          </table>
+        </table>
         
     </div>
     
